@@ -1,0 +1,13 @@
+version: 0.2
+
+phases:
+  prebuild:
+    commands:
+      - aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin 851725474122.dkr.ecr.ap-southeast-1.amazonaws.com
+  build:
+    commands:
+      - docker build -t channels -f ./apps/channel-service/Dockerfile .
+      - docker tag channels:latest 851725474122.dkr.ecr.ap-southeast-1.amazonaws.com/channels:latest
+  post-build:
+    commands:
+      - docker push 851725474122.dkr.ecr.ap-southeast-1.amazonaws.com/channels:latest

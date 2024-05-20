@@ -1,0 +1,17 @@
+services:
+  channel-service:
+    build:
+      context: .
+      dockerfile: apps/channel-service/Dockerfile
+      target: development
+    command: yarn start:dev
+    ports:
+      - "3001:3001"
+    volumes:
+      - .:/usr/src/app
+    env_file:
+      - apps\channel-service\.env
+  mongo:
+      image: mongo
+
+      
