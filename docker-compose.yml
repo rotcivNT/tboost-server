@@ -3,8 +3,8 @@ services:
     build:
       context: .
       dockerfile: apps/channel-service/Dockerfile
-      target: development
-    command: yarn start:dev
+      target: production
+    command: node dist/apps/channel-service.js/main
     ports:
       - "3001:3001"
     volumes:
