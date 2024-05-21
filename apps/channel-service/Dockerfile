@@ -1,14 +1,14 @@
-FROM node:20-alpine As development
+FROM node:20-alpine as build
 
 WORKDIR /usr/src/app
 
-COPY package*.json ./
+COPY --chown=node:node package.json yarn.lock ./
 
-RUN yarn install
+RUN yarn install --frozen-lockfile --production
 
-COPY . .
+COPY --chown=node:node . .
 
-RUN yarn run build
+RUN yarn build
 
 FROM node:20-alpine as production
 
@@ -17,12 +17,11 @@ ENV NODE_ENV=${NODE_ENV}
 
 WORKDIR /usr/src/app
 
-COPY package*.json ./
-
-RUN yarn install --only=production
+COPY package*.json yarn.lock ./
 
 COPY . .
 
-COPY --from=development /usr/src/app/dist ./dist
+COPY --from=build /usr/src/app/dist ./dist
+COPY --from=build /usr/src/app/node_modules ./node_modules
 
-CMD ["node", "dist/apps/channel-service/main"]
+CMD ["node", "dist/apps/channel-service.js/main"]
