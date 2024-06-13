@@ -18,32 +18,44 @@ export class ChannelGateway extends EventsGateway {
 
   @SubscribeMessage('add-bookmark')
   async handleAddBookmark(@MessageBody() data: any) {
-    const res = await this.channelsService.createBookmark(
-      data.channelId,
-      data.isFolder,
-      data.payload,
-    );
-    return { event: 'add-bookmark', data: res };
+    try {
+      const res = await this.channelsService.createBookmark(
+        data.channelId,
+        data.isFolder,
+        data.payload,
+      );
+      return { event: 'add-bookmark', data: res };
+    } catch (e) {
+      return { event: 'add-bookmark', data: e };
+    }
   }
 
   @SubscribeMessage('update-bookmark')
   async handleUpdateBookmark(@MessageBody() data: any) {
-    const res = await this.channelsService.updateBookmark(
-      data.channelId,
-      data.isFolder,
-      data.payload,
-    );
+    try {
+      const res = await this.channelsService.updateBookmark(
+        data.channelId,
+        data.isFolder,
+        data.payload,
+      );
 
-    return { event: 'add-bookmark', data: res };
+      return { event: 'add-bookmark', data: res };
+    } catch (e) {
+      return { event: 'add-bookmark', data: e };
+    }
   }
 
   @SubscribeMessage('delete-bookmark')
   async handleDeleteBookmark(@MessageBody() payload: any) {
-    const res = await this.channelsService.deleteBookmark(
-      payload.channelId,
-      payload.bookmarkData,
-    );
+    try {
+      const res = await this.channelsService.deleteBookmark(
+        payload.channelId,
+        payload.bookmarkData,
+      );
 
-    return { event: 'add-bookmark', data: res };
+      return { event: 'add-bookmark', data: res };
+    } catch (e) {
+      return { event: 'add-bookmark', data: e };
+    }
   }
 }

@@ -2,12 +2,14 @@ import {
   ArrayMinSize,
   IsArray,
   IsNotEmpty,
+  IsObject,
   IsOptional,
   MinLength,
 } from 'class-validator';
 import { ChannelMember } from '../schema/channel.schema';
 import { BookmarkFolder } from '../schema/types/bookmark-folder.type';
 import { Bookmark } from '../schema/types/bookmark.type';
+import { ChannelSettings } from '../schema/types/channel-setting.type';
 
 export class CreateChannelDto {
   // Required: name, type, workspaceID, creatorID, members
@@ -38,4 +40,8 @@ export class CreateChannelDto {
   @IsOptional()
   @IsArray()
   bookmarkFolders?: BookmarkFolder[];
+
+  @IsOptional()
+  @IsObject()
+  settings: ChannelSettings;
 }

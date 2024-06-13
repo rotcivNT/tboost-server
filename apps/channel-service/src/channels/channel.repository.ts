@@ -6,13 +6,13 @@ import {
   CreateBookmarkDto,
   CreateBookmarkFolderDto,
 } from './dto/create-bookmark.dto';
-import ChannelHelper from './helper/channel.helper';
-import { Channel } from './schema/channel.schema';
+import { DeleteBookmarkDto } from './dto/delete-bookmark.dto';
 import {
   UpdateBookmarkDto,
   UpdateBookmarkFolderDto,
 } from './dto/update-bookmark.dto';
-import { DeleteBookmarkDto } from './dto/delete-bookmark.dto';
+import ChannelHelper from './helper/channel.helper';
+import { Channel, ChannelMember } from './schema/channel.schema';
 
 @Injectable()
 export class ChannelRepository extends AbstractRepository<Channel> {
@@ -101,6 +101,18 @@ export class ChannelRepository extends AbstractRepository<Channel> {
       );
       if (res.code === -1) return res;
     }
+    const savedDocument = await channel.save();
+    return savedDocument.toJSON() as unknown as Channel;
+  }
+
+  async addMemberToChannel(_id: string, memberID: string) {
+    const channel = await this.channelModel.findOne({ _id });
+    const data: ChannelMember = {
+      userID: memberID,
+      joinedAt: new Date(),
+    };
+    channel.members = [...channel.members, data];
+
     const savedDocument = await channel.save();
     return savedDocument.toJSON() as unknown as Channel;
   }

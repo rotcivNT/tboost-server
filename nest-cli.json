@@ -25,6 +25,24 @@
       "compilerOptions": {
         "tsConfigPath": "apps/channel-service/tsconfig.app.json"
       }
+    },
+    "message-service": {
+      "type": "application",
+      "root": "apps/message-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/message-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/message-service/tsconfig.app.json"
+      }
+    },
+    "upload-service": {
+      "type": "application",
+      "root": "apps/upload-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/upload-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/upload-service/tsconfig.app.json"
+      }
     }
   },
   "monorepo": true,

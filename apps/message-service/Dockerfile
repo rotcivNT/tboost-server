@@ -24,4 +24,4 @@ COPY . .
 COPY --from=build /usr/src/app/dist ./dist
 COPY --from=build /usr/src/app/node_modules ./node_modules
 
-CMD ["node", "dist/apps/channel-service/main"]
+CMD ["node", "dist/apps/message-service/main"]
