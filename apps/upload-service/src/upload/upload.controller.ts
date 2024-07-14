@@ -1,27 +1,25 @@
 import {
   Body,
   Controller,
-  Get,
   Post,
-  Query,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { EventPattern } from '@nestjs/microservices';
-import { FilesInterceptor } from '@nestjs/platform-express';
-import { FormDataToJsonInterceptor } from 'apps/message-service/src/interceptors';
 import { detectTypeOfFile } from 'apps/message-service/src/messages/helper';
+import { encodeImageToBlurhash } from 'apps/upload-service/helper';
+import imageSize from 'image-size';
+import { ISizeCalculationResult } from 'image-size/dist/types/interface';
 import { FileData } from 'types';
 import { CreateBucketFileDto } from '../dtos/create-file-bucket.dto';
 import { CreateFileDto } from '../dtos/create-file.dto';
 import { UploadFileDto } from '../dtos/upload-file.dto';
 import { UploadService } from './upload.service';
-import imageSize from 'image-size';
-import { ISizeCalculationResult } from 'image-size/dist/types/interface';
-import { encodeImageToBlurhash } from 'apps/upload-service/helper';
-import { ConfigService } from '@nestjs/config';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { FormDataToJsonInterceptor } from 'apps/message-service/src/interceptors';
 
-@Controller('upload')
+@Controller('/uploads')
 export class UploadController {
   constructor(
     private readonly uploadService: UploadService,
@@ -41,6 +39,7 @@ export class UploadController {
         file.originalname = Buffer.from(file.originalname, 'latin1').toString(
           'utf8',
         );
+
         const typeOfFile = detectTypeOfFile(file.mimetype);
         const fileUrl = await this.uploadService.uploadToR2(
           this.configService.get('BUCKET_NAME'),
@@ -55,7 +54,9 @@ export class UploadController {
         };
 
         if (file.mimetype.includes('image')) {
-          const blurHash = await encodeImageToBlurhash(fileUrl);
+          const blurHash = await encodeImageToBlurhash(file);
+          console.log(blurHash);
+
           sizeOfImage = imageSize(file.buffer);
           fileData.originalWidth = sizeOfImage.width;
           fileData.originalHeight = sizeOfImage.height;
@@ -94,13 +95,13 @@ export class UploadController {
     }
   }
 
-  @Get()
-  async getImages(@Query() payload: any) {
-    const res = await fetch(payload.url);
-    const blob = await res.blob();
-    const buffer = await blob.arrayBuffer();
-    return Buffer.from(buffer);
-  }
+  // @Get()
+  // async getImages(@Query() payload: any) {
+  //   const res = await fetch(payload.url);
+  //   const blob = await res.blob();
+  //   const buffer = await blob.arrayBuffer();
+  //   return Buffer.from(buffer);
+  // }
 
   @EventPattern('delete-file')
   async deleteFileByUrl(fileUrl: string) {

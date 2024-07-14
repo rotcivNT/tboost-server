@@ -1,18 +1,19 @@
 import { AbstractRepository } from '@app/common/database/abstract.repository';
-import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { RemoveUserDto } from 'apps/api-gateway/src/dtos/channel-dto/remove-user.dto';
 import { Model } from 'mongoose';
 import {
   CreateBookmarkDto,
   CreateBookmarkFolderDto,
 } from './dto/create-bookmark.dto';
-import { DeleteBookmarkDto } from './dto/delete-bookmark.dto';
 import {
   UpdateBookmarkDto,
   UpdateBookmarkFolderDto,
 } from './dto/update-bookmark.dto';
 import ChannelHelper from './helper/channel.helper';
 import { Channel, ChannelMember } from './schema/channel.schema';
+import { DeleteBookmarkDto } from 'apps/api-gateway/src/dtos/channel-dto/delete-bookmark.dto';
 
 @Injectable()
 export class ChannelRepository extends AbstractRepository<Channel> {
@@ -113,6 +114,20 @@ export class ChannelRepository extends AbstractRepository<Channel> {
     };
     channel.members = [...channel.members, data];
 
+    const savedDocument = await channel.save();
+    return savedDocument.toJSON() as unknown as Channel;
+  }
+
+  async removeMemberFromChannel(deleteUserDto: RemoveUserDto) {
+    const { channelId, deleteId, senderId } = deleteUserDto;
+    const channel = await this.channelModel.findOne({ _id: channelId });
+    if (channel.creatorID !== senderId) {
+      throw new BadRequestException('You are not the creator of this channel');
+    }
+    const members = channel.members.filter(
+      (member) => member.userID !== deleteId,
+    );
+    channel.members = members;
     const savedDocument = await channel.save();
     return savedDocument.toJSON() as unknown as Channel;
   }

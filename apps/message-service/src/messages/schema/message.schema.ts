@@ -1,12 +1,7 @@
 import { AbstractDocument } from '@app/common/database/abstract.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import mongoose from 'mongoose';
 import { FileData } from 'types';
-
-export class Sender {
-  senderId: string;
-  fullName: string;
-  imageUrl: string;
-}
 
 class Reaction {
   emoji: string;
@@ -15,9 +10,11 @@ class Reaction {
 }
 
 export class LinkMetadata {
-  thumbnail: string;
-  title: string;
-  subtitle: string;
+  url: string;
+  favicon: string;
+  domain: string;
+  sitename: string;
+  image: string;
   description: string;
 }
 
@@ -26,15 +23,12 @@ export class MessageItem extends AbstractDocument {
   @Prop({ required: true })
   receiverId: string;
 
-  @Prop({ required: true, type: Sender })
-  sender: Sender;
-
-  // @Prop({ required: true })
-  // date: string;
+  @Prop({ required: true })
+  senderId: string;
 
   // người chuyển tiếp tin nhắn nếu có
-  @Prop({ type: Sender })
-  fowarder: Sender;
+  @Prop()
+  fowarder: string;
 
   @Prop({ required: true })
   type: string;
@@ -57,8 +51,11 @@ export class MessageItem extends AbstractDocument {
   @Prop({ type: [Reaction] })
   reactions: Reaction[];
 
-  @Prop()
-  replyFor: string;
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ReplyFor',
+  })
+  replyFor: this;
 
   @Prop({ type: LinkMetadata })
   metadata: LinkMetadata;

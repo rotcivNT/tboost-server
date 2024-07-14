@@ -6,4 +6,4 @@ export enum MessageType {
   LINK = 'link',
 }
 
-export const LIMIT_MESSAGE_PER_BUCKET = 30;
+export const LIMIT_MESSAGE = 20;

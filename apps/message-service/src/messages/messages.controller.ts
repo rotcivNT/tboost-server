@@ -1,55 +1,61 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Query,
-  UploadedFiles,
-  UseInterceptors,
-} from '@nestjs/common';
-import { FilesInterceptor } from '@nestjs/platform-express';
-import { FormDataToJsonInterceptor } from '../interceptors';
-import { CreateMessageDto } from './dto/create-messate.dto';
-import { GetMessageDto } from './dto/get-message-dto';
-import { UpdateMessageDto } from './dto/update-message.dto';
+import { Body, Controller } from '@nestjs/common';
+import { EventPattern, MessagePattern } from '@nestjs/microservices';
 import { MessagesService } from './messages.service';
-import { DeleteFileMessageDto } from './dto/delete-file-message.dto';
+import { CreateMessageDto } from 'apps/api-gateway/src/dtos/message-dto/create-messate.dto';
+import { DeleteFileMessageDto } from 'apps/api-gateway/src/dtos/message-dto/delete-file-message.dto';
+import { UpdateMessageDto } from 'apps/api-gateway/src/dtos/message-dto/update-message.dto';
+import { GetMessageDto } from 'apps/api-gateway/src/dtos/message-dto/get-message-dto';
+import { CreateSystemMessageDto } from 'apps/api-gateway/src/dtos/message-dto/CreateSystemMessageDto';
+import { CreateMeetingMessageDto } from 'apps/api-gateway/src/dtos/message-dto/create-meeting-message.dto';
+import { UpdateMeetingStatusDto } from 'apps/api-gateway/src/dtos/message-dto/update-meeting-status.dto';
 
 @Controller('messages')
 export class MessagesController {
   constructor(private readonly messagesService: MessagesService) {}
 
-  @Post()
-  @UseInterceptors(FilesInterceptor('files'), FormDataToJsonInterceptor)
-  createNewMessage(
-    @Body()
-    payload: CreateMessageDto,
-  ) {
+  @MessagePattern({ cmd: 'create-message' })
+  createNewMessage(payload: CreateMessageDto) {
     return this.messagesService.createMessage(payload);
   }
 
-  @Get()
-  getListMessage(@Query() getMessageDto: GetMessageDto) {
+  @MessagePattern({ cmd: 'get-list-message' })
+  getListMessage(getMessageDto: GetMessageDto) {
     return this.messagesService.getListMessage(
-      getMessageDto.channelId,
-      getMessageDto.page,
-      getMessageDto.pageSize,
+      getMessageDto.receiverId,
+      getMessageDto.beforeId,
+      getMessageDto.afterId,
+      getMessageDto.aroundId,
     );
   }
 
-  @Post('/update-message')
+  @MessagePattern({ cmd: 'update-message' })
   updateMessage(@Body() updateMessageDto: UpdateMessageDto) {
     return this.messagesService.updateMessage(updateMessageDto);
   }
 
-  @Post('/forward-message')
+  @MessagePattern({ cmd: 'forward-message' })
   forwardMessage(@Body() payload: CreateMessageDto) {
     return this.messagesService.forwardMessage(payload);
   }
 
-  @Post('/delete-file')
+  @MessagePattern({ cmd: 'delete-file-message' })
   deleteFileInMessage(@Body() payload: DeleteFileMessageDto) {
     return this.messagesService.deleteFile(payload);
+  }
+
+  @EventPattern('create-system-message')
+  createSystemMessage(createSystemMessageDto: CreateSystemMessageDto) {
+    return this.messagesService.createSystemMessage(createSystemMessageDto);
+  }
+
+  @EventPattern('create-meeting-message')
+  createMeetingMessage(createMeetingMessageDto: CreateMeetingMessageDto) {
+    return this.messagesService.createMeetingMessage(createMeetingMessageDto);
+  }
+
+  @EventPattern('update-meeting-status')
+  updateMeetingStatus(payload: UpdateMeetingStatusDto) {
+    return this.messagesService.updateMeetingStatus(payload);
   }
 }

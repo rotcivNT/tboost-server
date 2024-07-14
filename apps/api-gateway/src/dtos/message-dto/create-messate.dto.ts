@@ -1,4 +1,7 @@
-import { Type } from 'class-transformer';
+import {
+  LinkMetadata,
+  MessageItem,
+} from 'apps/message-service/src/messages/schema/message.schema';
 import {
   IsArray,
   IsIn,
@@ -6,16 +9,21 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { MessageType } from '../../constants';
-import { LinkMetadata, Sender } from '../schema/message.schema';
 import { FileData } from 'types';
+import { MessageType } from '../../constants';
+import { Type } from 'class-transformer';
 
+export class Sender {
+  clerkUserId: string;
+  fullName: string;
+  imageUrl: string;
+}
 export class CreateMessageDto {
   @IsNotEmpty()
   receiverId: string;
 
-  // @IsNotEmpty()
-  // date: string;
+  @IsNotEmpty()
+  senderId: string;
 
   @IsNotEmpty()
   @Type(() => Sender)
@@ -25,8 +33,7 @@ export class CreateMessageDto {
   type: string;
 
   @IsOptional()
-  @Type(() => Sender)
-  forwarder: Sender;
+  forwarder: string;
 
   @IsNotEmpty()
   uniqueId: string;
@@ -41,7 +48,7 @@ export class CreateMessageDto {
   files: FileData[];
 
   @IsOptional()
-  replyFor: string;
+  replyFor: MessageItem;
 
   @IsOptional()
   metadata: LinkMetadata;

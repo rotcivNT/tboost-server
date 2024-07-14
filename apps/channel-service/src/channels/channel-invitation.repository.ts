@@ -1,5 +1,4 @@
 import { AbstractRepository } from '@app/common/database/abstract.repository';
-import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -13,7 +12,6 @@ export class ChannelInvitationRepository extends AbstractRepository<ChannelInvit
   constructor(
     @InjectModel(ChannelInvitation.name)
     protected readonly channelInvitationModel: Model<ChannelInvitation>,
-    private readonly mailService: MailerService,
   ) {
     super(channelInvitationModel);
   }
@@ -49,23 +47,12 @@ export class ChannelInvitationRepository extends AbstractRepository<ChannelInvit
       data.receiverEmail,
     );
 
-    const createdDocument = await this.create(data);
-
-    const message = `
-          <a href="${process.env.FRONT_END_HOST}/channel-invitation/${createdDocument._id}">
-          Accept (expired in 7 days)
-          </a>
-      `;
     try {
-      this.mailService.sendMail({
-        from: createInvitation.senderEmail,
-        to: createInvitation.receiverEmail,
-        subject: 'Invite to channel !',
-        html: message,
-      });
+      const createdDocument = await this.create(data);
       return {
         code: 1,
-        message: 'Send invitation successfully',
+        message: 'Successfully',
+        data: createdDocument,
       };
     } catch (e) {
       console.log(e);

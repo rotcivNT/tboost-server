@@ -1,13 +1,15 @@
 import { LoggerModule } from '@app/common';
+import { DatabaseModule } from '@app/common/database/database.module';
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { FileBucket, FileBucketSchema } from '../schema/file-bucket.schema';
 import { FileItem, FileItemSchema } from '../schema/file-item.schema';
+import { FileBucketRepository } from './file-bucket.repository';
+import { FileItemRepository } from './file-item.repository';
 import { UploadController } from './upload.controller';
 import { UploadService } from './upload.service';
-import { FileBucket, FileBucketSchema } from '../schema/file-bucket.schema';
-import { FileItemRepository } from '../file-item.repository';
-import { FileBucketRepository } from '../file-bucket.repository';
+import { RmqService } from '@app/common/rmq/rmq.service';
 
 @Module({
   imports: [
@@ -15,13 +17,8 @@ import { FileBucketRepository } from '../file-bucket.repository';
     ConfigModule.forRoot({
       envFilePath: 'apps/upload-service/.env',
     }),
-    MongooseModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        uri: configService.get('MONGODB_URI'),
-      }),
-      inject: [ConfigService],
-    }),
+
+    DatabaseModule.register({ connectionName: 'UPLOAD' }),
     MongooseModule.forFeature([
       {
         name: FileItem.name,
@@ -34,6 +31,11 @@ import { FileBucketRepository } from '../file-bucket.repository';
     ]),
   ],
   controllers: [UploadController],
-  providers: [UploadService, FileItemRepository, FileBucketRepository],
+  providers: [
+    UploadService,
+    FileItemRepository,
+    FileBucketRepository,
+    RmqService,
+  ],
 })
 export class UploadModule {}

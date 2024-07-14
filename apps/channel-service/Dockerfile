@@ -4,7 +4,7 @@ WORKDIR /usr/src/app
 
 COPY --chown=node:node package.json yarn.lock ./
 
-RUN yarn install --frozen-lockfile --production
+RUN yarn install --frozen-lockfile --production &&  yarn add sharp --ignore-engines
 
 COPY --chown=node:node . .
 

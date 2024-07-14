@@ -2,9 +2,9 @@ import { AbstractRepository } from '@app/common/database/abstract.repository';
 import { Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { LIMIT_FILE_PER_BUCKET } from './constants';
-import { CreateBucketFileDto } from './dtos/create-file-bucket.dto';
-import { FileBucket } from './schema/file-bucket.schema';
+import { LIMIT_FILE_PER_BUCKET } from '../constants';
+import { CreateBucketFileDto } from '../dtos/create-file-bucket.dto';
+import { FileBucket } from '../schema/file-bucket.schema';
 
 export class FileBucketRepository extends AbstractRepository<FileBucket> {
   protected readonly logger = new Logger(FileBucketRepository.name);

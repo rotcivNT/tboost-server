@@ -8,8 +8,8 @@ import {
 import { Injectable } from '@nestjs/common';
 import { CreateBucketFileDto } from '../dtos/create-file-bucket.dto';
 import { CreateFileDto } from '../dtos/create-file.dto';
-import { FileBucketRepository } from '../file-bucket.repository';
-import { FileItemRepository } from '../file-item.repository';
+import { FileBucketRepository } from './file-bucket.repository';
+import { FileItemRepository } from './file-item.repository';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()

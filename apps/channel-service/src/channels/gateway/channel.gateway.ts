@@ -4,7 +4,9 @@ import {
   SubscribeMessage,
   WebSocketGateway,
 } from '@nestjs/websockets';
+import { isValidObjectId } from 'mongoose';
 import { ChannelsService } from '../channels.service';
+import { InvalidObjectIdException } from '../exceptions/invalid-object-id.exception';
 
 @WebSocketGateway({
   cors: {
@@ -19,6 +21,11 @@ export class ChannelGateway extends EventsGateway {
   @SubscribeMessage('add-bookmark')
   async handleAddBookmark(@MessageBody() data: any) {
     try {
+      if (!isValidObjectId(data.channelId)) {
+        throw new InvalidObjectIdException(
+          `${data.channelId} is not a valid ObjectId`,
+        );
+      }
       const res = await this.channelsService.createBookmark(
         data.channelId,
         data.isFolder,
@@ -33,6 +40,11 @@ export class ChannelGateway extends EventsGateway {
   @SubscribeMessage('update-bookmark')
   async handleUpdateBookmark(@MessageBody() data: any) {
     try {
+      if (!isValidObjectId(data.channelId)) {
+        throw new InvalidObjectIdException(
+          `${data.channelId} is not a valid ObjectId`,
+        );
+      }
       const res = await this.channelsService.updateBookmark(
         data.channelId,
         data.isFolder,
@@ -48,6 +60,11 @@ export class ChannelGateway extends EventsGateway {
   @SubscribeMessage('delete-bookmark')
   async handleDeleteBookmark(@MessageBody() payload: any) {
     try {
+      if (!isValidObjectId(payload.channelId)) {
+        throw new InvalidObjectIdException(
+          `${payload.channelId} is not a valid ObjectId`,
+        );
+      }
       const res = await this.channelsService.deleteBookmark(
         payload.channelId,
         payload.bookmarkData,
