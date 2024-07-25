@@ -1,46 +1,15 @@
-services:
-  # channel-service:
-  #   build:
-  #     context: .
-  #     dockerfile: apps/channel-service/Dockerfile
-  #     target: production
-  #   command: node dist/apps/channel-service/main
-  #   ports:
-  #     - "3001:3001"
-  #   volumes:
-  #     - .:/usr/src/app
-  #   env_file:
-  #     - apps\channel-service\.env
-  
-  # message-service:
-  #   build:
-  #     context: .
-  #     dockerfile: apps/message-service/Dockerfile
-  #     target: production
-  #   command: node dist/apps/message-service/main
-  #   ports:
-  #     - "3002:3002"
-  #   volumes:
-  #     - .:/usr/src/app
-  #   env_file:
-  #     - apps\message-service\.env
 
-  upload-service:
+services:
+  channel-service:
     build:
       context: .
-      dockerfile: apps/upload-service/Dockerfile
-      target: production
-      args:
-        - YARN_VERSION=4.3.0
-    command: node dist/apps/upload-service/main
+      dockerfile: apps/channel-service/Dockerfile
+      target: development
     ports:
-      - "3003:3003"
+      - "3001:3001"
     volumes:
       - .:/usr/src/app
     env_file:
-      - apps\upload-service\.env
-  # mongo:
-      # image: mongo
-
+      - apps/channel-service/.env
 
       

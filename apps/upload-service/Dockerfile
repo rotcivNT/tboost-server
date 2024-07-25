@@ -19,7 +19,7 @@ FROM node:20-alpine as production
 ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
 
-ENV YARN_VERSION=4.3.0
+ENV YARN_VERSION=4.3.1
 
 WORKDIR /usr/src/app
 

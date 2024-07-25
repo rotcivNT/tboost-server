@@ -27,7 +27,7 @@
     }
   },
   "watchOptions": {
-    "watchFile": "fixedpollinginterval",
+    "watchFile": "dynamicPriorityPolling",
     "watchDirectory": "dynamicPriorityPolling",
     "excludeDirectories": [
       "**/node_modules",
