@@ -105,5 +105,6 @@
     "moduleNameMapper": {
       "^@app/common(|/.*)$": "<rootDir>/libs/common/src/$1"
     }
-  }
+  },
+  "packageManager": "yarn@4.3.1"
 }
