@@ -1,9 +1,10 @@
 import { AbstractRepository } from '@app/common/database/abstract.repository';
-import { MessageItem } from './schema/message.schema';
-import { Model } from 'mongoose';
 import { Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { LIMIT_MESSAGE } from '../constants';
+import { MessageItem } from './schema/message.schema';
+import { ClusterReponse } from '../types';
 
 export class MessageItemRepository extends AbstractRepository<MessageItem> {
   protected readonly logger = new Logger(MessageItemRepository.name);
@@ -32,22 +33,20 @@ export class MessageItemRepository extends AbstractRepository<MessageItem> {
     return updatedDoc;
   }
 
-  // match query createdAt < .... and _id
-  // around
-  // before id ?
-  // check discord api
+  // Followed by discord api
   async getListMessages(
     receiverId: string,
     beforeId: string,
     afterId: string,
     aroundId: string,
   ) {
-    let messagesList = [];
+    let messagesList: ClusterReponse[] = [];
 
     const message = await this.messageItemModel.findOne({
       receiverId,
       _id: beforeId || afterId || aroundId,
     });
+
     if (message) {
       if (beforeId) {
         messagesList = await this.messageItemModel
@@ -162,6 +161,7 @@ export class MessageItemRepository extends AbstractRepository<MessageItem> {
         );
       });
     });
+
     return messagesList;
   }
 }

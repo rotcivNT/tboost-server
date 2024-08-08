@@ -1,4 +1,4 @@
-export const CHANNEL_SERVICE = 'channel';
-export const MESSAGE_SERVICE = 'message';
-export const UPLOAD_SERVICE = 'upload';
-export const AUTH_SERVICE = 'auth';
+export const CONVERSATION_SERVICE = 'CONVERSATION';
+export const MESSAGE_SERVICE = 'MESSAGE';
+export const UPLOAD_SERVICE = 'UPLOAD';
+export const AUTH_SERVICE = 'AUTH';

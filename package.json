@@ -33,6 +33,7 @@
     "@nestjs/platform-express": "^10.3.10",
     "@nestjs/platform-fastify": "^10.3.10",
     "@nestjs/platform-socket.io": "^10.3.10",
+    "@nestjs/swagger": "^7.4.0",
     "@nestjs/websockets": "^10.3.10",
     "@swc/cli": "^0.4.0",
     "@swc/core": "^1.7.2",

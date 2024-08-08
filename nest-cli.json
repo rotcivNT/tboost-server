@@ -17,13 +17,13 @@
         "tsConfigPath": "libs/common/tsconfig.lib.json"
       }
     },
-    "channel-service": {
+    "conversation-service": {
       "type": "application",
-      "root": "apps/channel-service",
+      "root": "apps/conversation-service",
       "entryFile": "main",
-      "sourceRoot": "apps/channel-service/src",
+      "sourceRoot": "apps/conversation-service/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/channel-service/tsconfig.app.json"
+        "tsConfigPath": "apps/conversation-service/tsconfig.app.json"
       }
     },
     "message-service": {

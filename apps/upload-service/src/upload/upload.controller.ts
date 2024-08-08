@@ -95,6 +95,28 @@ export class UploadController {
     }
   }
 
+  @Post('/only-upload-files')
+  @UseInterceptors(FilesInterceptor('files'))
+  async onlyUploadFiles(@UploadedFiles() files: Express.Multer.File[]) {
+    try {
+      const filesUrl: string[] = [];
+      for (const file of files) {
+        const fileUrl = await this.uploadService.uploadToR2(
+          this.configService.get('BUCKET_TASK_NAME'),
+          file,
+        );
+        filesUrl.push(fileUrl);
+      }
+
+      return {
+        code: 1,
+        msg: 'Upload Successfully',
+        data: filesUrl,
+      };
+    } catch (e) {
+      console.log(e);
+    }
+  }
   // @Get()
   // async getImages(@Query() payload: any) {
   //   const res = await fetch(payload.url);

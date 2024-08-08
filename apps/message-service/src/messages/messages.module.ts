@@ -8,7 +8,7 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import {
   AUTH_SERVICE,
-  CHANNEL_SERVICE,
+  CONVERSATION_SERVICE,
   UPLOAD_SERVICE,
 } from 'apps/api-gateway/src/constants/services';
 import { MessageItemRepository } from './message-item.repository';
@@ -32,7 +32,7 @@ import { MessageItem, MessageItemSchema } from './schema/message.schema';
     LoggerModule,
     PusherModule,
     RmqModule.register({
-      name: CHANNEL_SERVICE,
+      name: CONVERSATION_SERVICE,
     }),
     RmqModule.register({
       name: UPLOAD_SERVICE,

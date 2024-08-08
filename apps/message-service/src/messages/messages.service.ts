@@ -1,54 +1,66 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
+import { MessageType } from 'apps/api-gateway/src/constants';
 import {
   AUTH_SERVICE,
-  CHANNEL_SERVICE,
+  CONVERSATION_SERVICE,
   UPLOAD_SERVICE,
 } from 'apps/api-gateway/src/constants/services';
-import { CreateMessageDto } from 'apps/api-gateway/src/dtos/message-dto/create-messate.dto';
-import { lastValueFrom } from 'rxjs';
-import { MessageItemRepository } from './message-item.repository';
-import { User } from 'apps/auth-service/src/schema/user.schema';
-import { MessageItem } from './schema/message.schema';
-import { CreateSystemMessageDto } from 'apps/api-gateway/src/dtos/message-dto/CreateSystemMessageDto';
-import { v4 as uuidv4 } from 'uuid';
-import { UpdateMessageDto } from 'apps/api-gateway/src/dtos/message-dto/update-message.dto';
-import { DeleteFileMessageDto } from 'apps/api-gateway/src/dtos/message-dto/delete-file-message.dto';
+import {
+  FindBy,
+  GetUserDto,
+} from 'apps/api-gateway/src/dtos/auth-dto/get-user.dto';
 import { CreateMeetingMessageDto } from 'apps/api-gateway/src/dtos/message-dto/create-meeting-message.dto';
-import { MessageType } from 'apps/api-gateway/src/constants';
+import { CreateMessageDto } from 'apps/api-gateway/src/dtos/message-dto/create-messate.dto';
+import { CreateSystemMessageDto } from 'apps/api-gateway/src/dtos/message-dto/CreateSystemMessageDto';
+import { DeleteFileMessageDto } from 'apps/api-gateway/src/dtos/message-dto/delete-file-message.dto';
 import { UpdateMeetingStatusDto } from 'apps/api-gateway/src/dtos/message-dto/update-meeting-status.dto';
+import { UpdateMessageDto } from 'apps/api-gateway/src/dtos/message-dto/update-message.dto';
+import { ApiStatus } from 'apps/api-gateway/src/types/api-status';
+import { User } from 'apps/auth-service/src/schema/user.schema';
+import { lastValueFrom } from 'rxjs';
+import { v4 as uuidv4 } from 'uuid';
+import { CreateMessageResponseDto } from '../dto/reponse-dto/create-message-response.dto';
+import { GetMessageReponseDto } from '../dto/reponse-dto/get-message-response.dto';
+import { MessageResponse } from '../types';
+import { MessageItemRepository } from './message-item.repository';
+import { MessageItem } from './schema/message.schema';
+import { GetUserResponseDto } from 'apps/auth-service/src/dto/response-dto/get-user-response.dto';
+import { UpdateMessageReponseDto } from '../dto/reponse-dto/update-message-response.dto';
 
 @Injectable()
 export class MessagesService {
   constructor(
-    @Inject(CHANNEL_SERVICE) private channelClient: ClientProxy,
+    @Inject(CONVERSATION_SERVICE) private channelClient: ClientProxy,
     @Inject(UPLOAD_SERVICE) private uploadClient: ClientProxy,
     @Inject(AUTH_SERVICE) private authClient: ClientProxy,
     private readonly messageItemRepository: MessageItemRepository,
   ) {}
 
-  async createMessage(createMessageDto: CreateMessageDto) {
-    try {
-      createMessageDto.createdAt = new Date();
-      createMessageDto.updatedAt = new Date();
+  async createMessage(
+    createMessageDto: CreateMessageDto,
+  ): Promise<CreateMessageResponseDto> {
+    createMessageDto.createdAt = new Date();
+    createMessageDto.updatedAt = new Date();
 
-      const message = await this.messageItemRepository.create(createMessageDto);
-      const deliveryMessage: any = {
-        ...message,
-        sender: createMessageDto.sender,
-      };
+    const message = await this.messageItemRepository.create(createMessageDto);
+    const deliveryMessage: MessageResponse = {
+      ...message,
+      sender: createMessageDto.sender,
+    };
 
-      this.channelClient.emit('message-delivery', {
-        channelId: createMessageDto.receiverId,
-        message: deliveryMessage,
-        socketId: createMessageDto.socketId,
-      });
+    this.channelClient.emit('message-delivery', {
+      channelId: createMessageDto.receiverId,
+      message: deliveryMessage,
+      socketId: createMessageDto.socketId,
+    });
 
-      return deliveryMessage;
-    } catch (e) {
-      console.log(e);
-      return e;
-    }
+    return {
+      statusCode: HttpStatus.CREATED,
+      message: 'Message created successfully',
+      data: deliveryMessage,
+      status: ApiStatus.OK,
+    };
   }
 
   async getListMessage(
@@ -56,7 +68,7 @@ export class MessagesService {
     beforeId: string,
     afterId: string,
     aroundId: string,
-  ) {
+  ): Promise<GetMessageReponseDto> {
     const clusters = await this.messageItemRepository.getListMessages(
       receiverId,
       beforeId,
@@ -64,19 +76,23 @@ export class MessagesService {
       aroundId,
     );
     const senders = new Map<string, User>();
-    const senderPromises: { [key: string]: Promise<User> } = {};
+    const senderPromises: { [key: string]: Promise<GetUserResponseDto> } = {};
 
     for (const cluster of clusters) {
       for (const message of cluster.messages) {
         if (!senders.has(message.senderId)) {
           if (!senderPromises[message.senderId]) {
+            const getUserDto: GetUserDto = {
+              field: message.senderId,
+              findBy: FindBy.CLERK_USER_ID,
+            };
             senderPromises[message.senderId] = lastValueFrom(
-              this.authClient.send({ cmd: 'get-user' }, message.senderId),
+              this.authClient.send({ cmd: 'get-user' }, getUserDto),
             );
           }
-          const sender = await senderPromises[message.senderId];
-          senders.set(message.senderId, sender);
-          message.sender = sender;
+          const senderRes = await senderPromises[message.senderId];
+          senders.set(message.senderId, senderRes.data[0]);
+          message.sender = senderRes.data[0];
         } else {
           message.sender = senders.get(message.senderId);
         }
@@ -85,17 +101,18 @@ export class MessagesService {
           const senderIdOfReplyMessage = message.replyMessage[0].senderId;
           if (!senders.has(senderIdOfReplyMessage)) {
             if (!senderPromises[senderIdOfReplyMessage]) {
+              const getUserDto: GetUserDto = {
+                field: senderIdOfReplyMessage,
+                findBy: FindBy.CLERK_USER_ID,
+              };
               senderPromises[senderIdOfReplyMessage] = lastValueFrom(
-                this.authClient.send(
-                  { cmd: 'get-user' },
-                  senderIdOfReplyMessage,
-                ),
+                this.authClient.send({ cmd: 'get-user' }, getUserDto),
               );
             }
             const senderOfReplyMessage =
               await senderPromises[senderIdOfReplyMessage];
-            senders.set(senderIdOfReplyMessage, senderOfReplyMessage);
-            message.replyMessage[0].sender = senderOfReplyMessage;
+            senders.set(senderIdOfReplyMessage, senderOfReplyMessage.data[0]);
+            message.replyMessage[0].sender = senderOfReplyMessage.data[0];
           } else {
             message.replyMessage[0].sender = senders.get(
               senderIdOfReplyMessage,
@@ -104,17 +121,23 @@ export class MessagesService {
         }
       }
     }
-
-    return clusters;
+    return {
+      data: clusters,
+      message: 'Get list message successfully',
+      status: ApiStatus.OK,
+      statusCode: HttpStatus.OK,
+    };
   }
 
-  async updateMessage(updateMessageDto: UpdateMessageDto) {
+  async updateMessage(
+    updateMessageDto: UpdateMessageDto,
+  ): Promise<UpdateMessageReponseDto> {
     updateMessageDto.updatedAt = new Date();
     const updatedDoc = await this.messageItemRepository.findOneAndUpdate(
       { _id: updateMessageDto._id },
       updateMessageDto,
     );
-    const deliveryMessage = {
+    const deliveryMessage: MessageResponse = {
       ...updatedDoc,
       sender: updateMessageDto.sender,
     };
@@ -124,15 +147,22 @@ export class MessagesService {
       socketId: updateMessageDto.socketId,
       type: 'update',
     });
-    return deliveryMessage;
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Message updated successfully',
+      data: deliveryMessage,
+      status: ApiStatus.OK,
+    };
   }
 
-  async forwardMessage(createMessageDto: CreateMessageDto) {
+  async forwardMessage(
+    createMessageDto: CreateMessageDto,
+  ): Promise<UpdateMessageReponseDto> {
     try {
       createMessageDto.createdAt = new Date();
       createMessageDto.updatedAt = new Date();
       const message = await this.messageItemRepository.create(createMessageDto);
-      const deliveryMessage = {
+      const deliveryMessage: MessageResponse = {
         ...message,
         sender: createMessageDto.sender,
       };
@@ -143,13 +173,20 @@ export class MessagesService {
         socketId: createMessageDto.socketId,
       });
 
-      return deliveryMessage;
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Message updated successfully',
+        data: deliveryMessage,
+        status: ApiStatus.OK,
+      };
     } catch (e) {
       return e;
     }
   }
 
-  async deleteFile(payload: DeleteFileMessageDto) {
+  async deleteFile(
+    payload: DeleteFileMessageDto,
+  ): Promise<UpdateMessageReponseDto> {
     const { _id, fileUrl } = payload;
     try {
       const updatedDocument = await this.messageItemRepository.deleteFile(
@@ -163,7 +200,15 @@ export class MessagesService {
         type: 'update',
       });
       this.uploadClient.emit('delete-file', fileUrl);
-      return updatedDocument;
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Message updated successfully',
+        data: {
+          ...updatedDocument,
+          sender: null,
+        },
+        status: ApiStatus.OK,
+      };
     } catch (e) {
       return e;
     }
