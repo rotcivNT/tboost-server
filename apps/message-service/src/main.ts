@@ -1,8 +1,8 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { Logger } from 'nestjs-pino';
-import { MessagesModule } from './messages/messages.module';
 import { RmqService } from '@app/common/rmq/rmq.service';
+import { MessagesModule } from './messages.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(MessagesModule);
@@ -12,5 +12,6 @@ async function bootstrap() {
   const rmqService = app.get<RmqService>(RmqService, { strict: false });
   app.connectMicroservice(rmqService.getOptions('MESSAGE'));
   await app.startAllMicroservices();
+  await app.listen(3005);
 }
 bootstrap();

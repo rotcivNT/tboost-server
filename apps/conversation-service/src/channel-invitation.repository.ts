@@ -5,9 +5,9 @@ import { Model } from 'mongoose';
 import { ChannelRepository } from './channel.repository';
 import { ChannelInvitation } from './schema/channel-invitation.schema';
 import { CreateInvitationDto } from 'apps/api-gateway/src/dtos/conversation-dto/channel-dto/create-invitation.dto';
-import { SendInvitationReponseDto } from 'apps/conversation-service/src/conversation/dto/response-dto/send-invitation-reponse.dto';
+import { SendInvitationReponseDto } from 'apps/conversation-service/src/dto/response-dto/send-invitation-reponse.dto';
 import { ApiStatus } from 'apps/api-gateway/src/types/api-status';
-import { AcceptInvitationResponseDto } from 'apps/conversation-service/src/conversation/dto/response-dto/accept-invitation-response.dto';
+import { AcceptInvitationResponseDto } from 'apps/conversation-service/src/dto/response-dto/accept-invitation-response.dto';
 
 @Injectable()
 export class ChannelInvitationRepository extends AbstractRepository<ChannelInvitation> {

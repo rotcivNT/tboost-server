@@ -3,7 +3,7 @@ import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { RemoveUserDto } from 'apps/api-gateway/src/dtos/conversation-dto/channel-dto/remove-user.dto';
 import { ApiStatus } from 'apps/api-gateway/src/types/api-status';
-import { UpdateChannelResponseDto } from 'apps/conversation-service/src/conversation/dto/response-dto/update-channel-response.dto';
+import { UpdateChannelResponseDto } from 'apps/conversation-service/src/dto/response-dto/update-channel-response.dto';
 import { Model, ObjectId } from 'mongoose';
 import { Channel } from './schema/channel.schema';
 import { ConversationMember } from './types/conversation.type';
@@ -48,7 +48,7 @@ export class ChannelRepository extends AbstractRepository<Channel> {
   ): Promise<UpdateChannelResponseDto> {
     const { channelId, deleteId, senderId } = deleteUserDto;
     const channel = await this.channelModel.findOne({ _id: channelId });
-    if (channel.creatorID !== senderId) {
+    if (channel.creatorID !== senderId && deleteId !== senderId) {
       return {
         data: null,
         message: 'You are not authorized to remove a member',

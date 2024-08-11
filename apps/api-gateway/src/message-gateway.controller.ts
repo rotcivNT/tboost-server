@@ -11,7 +11,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { FormDataToJsonInterceptor } from 'apps/message-service/src/interceptors';
 import { ApiGatewayService } from './api-gateway.service';
 import { CreateMeetingMessageDto } from './dtos/message-dto/create-meeting-message.dto';
-import { CreateMessageDto } from './dtos/message-dto/create-messate.dto';
+import { CreateMessageDto } from './dtos/message-dto/create-message.dto';
 import { GetMessageDto } from './dtos/message-dto/get-message-dto';
 import { UpdateMeetingStatusDto } from './dtos/message-dto/update-meeting-status.dto';
 import { UpdateMessageDto } from './dtos/message-dto/update-message.dto';

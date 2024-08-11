@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { ConversationType } from 'apps/conversation-service/src/conversation/types/conversation.type';
+import { ConversationType } from 'apps/conversation-service/src/types/conversation.type';
 import {
   AUTH_SERVICE,
   CONVERSATION_SERVICE,
@@ -18,7 +18,7 @@ import { RemoveUserDto } from './dtos/conversation-dto/channel-dto/remove-user.d
 import { UpdateChannelDto } from './dtos/conversation-dto/channel-dto/update-channel.dto';
 import { CreateDirectConversationDto } from './dtos/conversation-dto/direct-conversation-dto/create-direct-conversation';
 import { CreateMeetingMessageDto } from './dtos/message-dto/create-meeting-message.dto';
-import { CreateMessageDto } from './dtos/message-dto/create-messate.dto';
+import { CreateMessageDto } from './dtos/message-dto/create-message.dto';
 import { DeleteFileMessageDto } from './dtos/message-dto/delete-file-message.dto';
 import { GetMessageDto } from './dtos/message-dto/get-message-dto';
 import { UpdateMeetingStatusDto } from './dtos/message-dto/update-meeting-status.dto';

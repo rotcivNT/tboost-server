@@ -1,4 +1,4 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { EventPattern, MessagePattern } from '@nestjs/microservices';
 import { CreateUserDto } from 'apps/api-gateway/src/dtos/auth-dto/create-user.dto';
 import {
@@ -12,6 +12,10 @@ import { UpdateUserDto } from 'apps/api-gateway/src/dtos/auth-dto/update-user.dt
 export class AuthsController {
   constructor(private readonly authsService: AuthsService) {}
 
+  @Get('/cron-job')
+  cronJob() {
+    return 'CRON-JOB';
+  }
   @EventPattern('create-user')
   createUser(createUserDto: CreateUserDto) {
     try {

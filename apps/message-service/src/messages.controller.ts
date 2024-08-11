@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Body, Controller } from '@nestjs/common';
+import { Body, Controller, Get } from '@nestjs/common';
 import { EventPattern, MessagePattern } from '@nestjs/microservices';
 import { MessagesService } from './messages.service';
-import { CreateMessageDto } from 'apps/api-gateway/src/dtos/message-dto/create-messate.dto';
+import { CreateMessageDto } from 'apps/api-gateway/src/dtos/message-dto/create-message.dto';
 import { DeleteFileMessageDto } from 'apps/api-gateway/src/dtos/message-dto/delete-file-message.dto';
 import { UpdateMessageDto } from 'apps/api-gateway/src/dtos/message-dto/update-message.dto';
 import { GetMessageDto } from 'apps/api-gateway/src/dtos/message-dto/get-message-dto';
@@ -13,6 +13,11 @@ import { UpdateMeetingStatusDto } from 'apps/api-gateway/src/dtos/message-dto/up
 @Controller('messages')
 export class MessagesController {
   constructor(private readonly messagesService: MessagesService) {}
+
+  @Get('/cron-job')
+  cronJob() {
+    return 'CRON-JOB';
+  }
 
   @MessagePattern({ cmd: 'create-message' })
   createNewMessage(payload: CreateMessageDto) {

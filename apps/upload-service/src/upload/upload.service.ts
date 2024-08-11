@@ -32,7 +32,9 @@ export class UploadService {
   }
 
   async uploadToR2(bucketName: string, file: Express.Multer.File) {
-    const fileName = `${Date.now()}_${file.originalname}`;
+    let fileName = `${Date.now()}_${file.originalname}`;
+    fileName = Buffer.from(file.originalname, 'latin1').toString('utf8');
+
     const uploadParams: PutObjectCommandInput = {
       Bucket: bucketName,
       Key: fileName,
@@ -43,7 +45,8 @@ export class UploadService {
 
     const cmd = new PutObjectCommand(uploadParams);
     await this.S3.send(cmd);
-    return `${this.configService.get('IMAGE_HOST')}${fileName}`;
+
+    return `${this.configService.get(`${bucketName.toUpperCase()}_HOST`)}${fileName}`;
   }
 
   createFile(createFileDto: CreateFileDto) {

@@ -1,6 +1,6 @@
 import { Type } from 'class-transformer';
 import { IsNotEmpty } from 'class-validator';
-import { Sender } from './create-messate.dto';
+import { Sender } from './create-message.dto';
 
 export class CreateMeetingMessageDto {
   @IsNotEmpty()

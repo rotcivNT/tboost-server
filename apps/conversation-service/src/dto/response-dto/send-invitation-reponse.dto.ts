@@ -1,5 +1,5 @@
 import { ApiResponse } from 'apps/api-gateway/src/types/api-response';
-import { ChannelInvitation } from 'apps/conversation-service/src/conversation/schema/channel-invitation.schema';
+import { ChannelInvitation } from 'apps/conversation-service/src/schema/channel-invitation.schema';
 
 export class SendInvitationReponseDto
   implements ApiResponse<ChannelInvitation>

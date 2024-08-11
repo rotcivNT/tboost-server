@@ -1,6 +1,6 @@
 import { PusherService } from '@app/common/pusher/pusher.service';
 import { clerkClient } from '@clerk/clerk-sdk-node';
-import { Controller, HttpStatus, Inject, Param } from '@nestjs/common';
+import { Controller, Get, HttpStatus, Inject, Param } from '@nestjs/common';
 import {
   ClientProxy,
   EventPattern,
@@ -23,21 +23,22 @@ import { RemoveUserDto } from 'apps/api-gateway/src/dtos/conversation-dto/channe
 import { UpdateChannelDto } from 'apps/api-gateway/src/dtos/conversation-dto/channel-dto/update-channel.dto';
 import { CreateDirectConversationDto } from 'apps/api-gateway/src/dtos/conversation-dto/direct-conversation-dto/create-direct-conversation';
 import { GetDirectConversationDto } from 'apps/api-gateway/src/dtos/conversation-dto/direct-conversation-dto/get-direct-conversation';
-import { CreateSystemMessageDto } from 'apps/api-gateway/src/dtos/message-dto/CreateSystemMessageDto';
-import { ApiStatus } from 'apps/api-gateway/src/types/api-status';
-import { GetUserResponseDto } from 'apps/auth-service/src/dto/response-dto/get-user-response.dto';
-import { User } from 'apps/auth-service/src/schema/user.schema';
-import { AcceptInvitationResponseDto } from 'apps/conversation-service/src/conversation/dto/response-dto/accept-invitation-response.dto';
-import { lastValueFrom } from 'rxjs';
-import { ConversationsService } from './conversation.service';
-import { ValidationObjectIdPipe } from './pipes/validation-object-id.pipe';
+import { CreateTaskColumnDto } from 'apps/api-gateway/src/dtos/conversation-dto/task-dto/create-task-column.dto';
 import { CreateTaskDto } from 'apps/api-gateway/src/dtos/conversation-dto/task-dto/create-task.dto';
+import { UpdateTaskColumnDto } from 'apps/api-gateway/src/dtos/conversation-dto/task-dto/update-task-column.dto';
 import {
   UpdateStateTaskDto,
   UpdateTaskDto,
 } from 'apps/api-gateway/src/dtos/conversation-dto/task-dto/update-task.dto';
-import { CreateTaskColumnDto } from 'apps/api-gateway/src/dtos/conversation-dto/task-dto/create-task-column.dto';
-import { UpdateTaskColumnDto } from 'apps/api-gateway/src/dtos/conversation-dto/task-dto/update-task-column.dto';
+import { CreateSystemMessageDto } from 'apps/api-gateway/src/dtos/message-dto/CreateSystemMessageDto';
+import { ApiStatus } from 'apps/api-gateway/src/types/api-status';
+import { GetUserResponseDto } from 'apps/auth-service/src/dto/response-dto/get-user-response.dto';
+import { User } from 'apps/auth-service/src/schema/user.schema';
+import { AcceptInvitationResponseDto } from 'apps/conversation-service/src/dto/response-dto/accept-invitation-response.dto';
+import { lastValueFrom } from 'rxjs';
+import { ConversationsService } from './conversation.service';
+import { ValidationObjectIdPipe } from './pipes/validation-object-id.pipe';
+import { ConversationType } from './types/conversation.type';
 @Controller('channels')
 export class ConversationsController {
   constructor(
@@ -47,6 +48,10 @@ export class ConversationsController {
     @Inject(AUTH_SERVICE) private clientAuth: ClientProxy,
   ) {}
 
+  @Get('/cron-job')
+  cronJob() {
+    return 'CRON-JOB';
+  }
   @MessagePattern({ cmd: 'create-channel' })
   async create(createChannelDto: CreateChannelDto) {
     try {
@@ -143,27 +148,66 @@ export class ConversationsController {
   @MessagePattern({ cmd: 'accept-invitation' })
   async acceptInvitation(id: string): Promise<AcceptInvitationResponseDto> {
     try {
+      let allPromises: Promise<any>[] = [];
+
       const res = await this.conversationsService.acceptInvitation(id);
 
       if (res.statusCode === HttpStatus.ACCEPTED) {
         const users = await clerkClient.users.getUserList({
           emailAddress: [res.data.receiverEmail],
         });
+        const invitedChannel = await this.conversationsService.findOne(
+          res.data.channelId,
+        );
+
+        const invitedChannelId = Array.isArray(invitedChannel.data)
+          ? invitedChannel.data[0]._id
+          : invitedChannel.data._id;
+
         if (users.totalCount > 0) {
           const user = users.data[0];
           const publicChannels =
             await this.conversationsService.getAllPublicChannelByWorkspaceId(
               res.data.workspaceId,
             );
+
+          // Manual add for specific channel that invited user
+          if (invitedChannel.statusCode === HttpStatus.OK) {
+            const addToPrivateChannelPromise =
+              this.conversationsService.addMemberToChannel(
+                invitedChannelId,
+                user.id,
+              );
+            const createDCPromise =
+              this.conversationsService.createDirectConversation({
+                members: [user.id],
+                workspaceId: res.data.workspaceId,
+                type: ConversationType.CHANNEL,
+              });
+            allPromises = [
+              ...allPromises,
+              addToPrivateChannelPromise,
+              createDCPromise,
+            ];
+          }
+
+          // Add member to all public channels
           if (Array.isArray(publicChannels.data)) {
             const promises = publicChannels.data.map((channel) => {
+              const alreadyMember = channel.members.find(
+                (membere) => membere.userID === user.id,
+              );
+              if (channel._id === invitedChannelId || alreadyMember)
+                return undefined;
               return this.conversationsService.addMemberToChannel(
                 channel._id,
                 user.id,
               );
             });
-            await Promise.allSettled(promises);
+            allPromises = [...allPromises, ...promises];
           }
+          await Promise.allSettled(allPromises);
+
           const createSystemMessageDto: CreateSystemMessageDto = {
             content: 'member.joined',
             channelId: res.data.channelId,
@@ -181,11 +225,7 @@ export class ConversationsController {
             createSystemMessageDto,
           );
 
-          await this.pusherService.trigger(
-            res.data.channelId,
-            'new-member-joined',
-            res,
-          );
+          this.pusherService.trigger(res.data.channelId, 'member.joined', res);
         }
       }
       return res;
@@ -275,10 +315,28 @@ export class ConversationsController {
   @MessagePattern({ cmd: 'remove-user' })
   async removeUserFromChannel(deleteUserDto: RemoveUserDto) {
     try {
+      const user = await clerkClient.users.getUser(deleteUserDto.deleteId);
+      const createSystemMessageDto: CreateSystemMessageDto = {
+        content: 'member.deleted',
+        channelId: deleteUserDto.channelId,
+        senderId: user.id,
+        type: MessageType.SYSTEM,
+        sender: {
+          clerkUserId: user.id,
+          fullName: user.fullName,
+          imageUrl: user.imageUrl,
+        },
+      };
+
       const res =
         await this.conversationsService.removeUserFromChannel(deleteUserDto);
-      this.pusherService.trigger(deleteUserDto.channelId, 'remove-user', res);
-      this.pusherService.trigger(deleteUserDto.deleteId, 'remove-user', res);
+      this.pusherService.trigger(
+        deleteUserDto.channelId,
+        'member.deleted',
+        res,
+      );
+      this.pusherService.trigger(deleteUserDto.deleteId, 'member.deleted', res);
+      this.clientMessage.emit('create-system-message', createSystemMessageDto);
       return res;
     } catch (e) {
       return new InternalServerErrorDto();
@@ -347,10 +405,36 @@ export class ConversationsController {
   @MessagePattern({ cmd: 'get-channel-task' })
   async getChannelTask(channelId: string) {
     try {
-      return await this.conversationsService.getChannelTaskByChannelId(
-        channelId,
-      );
+      const senders = new Map<string, User>();
+      const res =
+        await this.conversationsService.getChannelTaskByChannelId(channelId);
+      if (res.status === ApiStatus.OK) {
+        const tasksCol = res.data[0];
+        for (const task of tasksCol.taskOrders) {
+          task.membersInfo = [];
+          const memberIds: string[] = task.memberIds;
+
+          for (const memberId of memberIds) {
+            const payload: GetUserDto = {
+              field: memberId,
+              findBy: FindBy.CLERK_USER_ID,
+            };
+            if (!senders.has(memberId)) {
+              const data = await lastValueFrom(
+                this.clientAuth.send({ cmd: 'get-user' }, payload),
+              );
+              senders.set(memberId, data.data[0]);
+              task.membersInfo.push(data.data[0]);
+            } else {
+              task.membersInfo.push(senders.get(memberId));
+            }
+          }
+        }
+      }
+      return res;
     } catch (e) {
+      console.log(e);
+
       return new InternalServerErrorDto();
     }
   }

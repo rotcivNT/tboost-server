@@ -1,8 +1,4 @@
 import {
-  LinkMetadata,
-  MessageItem,
-} from 'apps/message-service/src/messages/schema/message.schema';
-import {
   IsArray,
   IsIn,
   IsNotEmpty,
@@ -12,6 +8,10 @@ import {
 import { FileData } from 'types';
 import { MessageType } from '../../constants';
 import { Type } from 'class-transformer';
+import {
+  LinkMetadata,
+  MessageItem,
+} from 'apps/message-service/src/schema/message.schema';
 
 export class Sender {
   clerkUserId: string;

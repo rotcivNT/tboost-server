@@ -10,7 +10,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { ValidationObjectIdPipe } from 'apps/conversation-service/src/conversation/pipes/validation-object-id.pipe';
+import { ValidationObjectIdPipe } from 'apps/conversation-service/src/pipes/validation-object-id.pipe';
 import { ApiGatewayService } from './api-gateway.service';
 import { BookmarkDto } from './dtos/conversation-dto/channel-dto/create-bookmark.dto';
 import { CreateInvitationDto } from './dtos/conversation-dto/channel-dto/create-invitation.dto';
@@ -33,6 +33,10 @@ import { UpdateTaskColumnDto } from './dtos/conversation-dto/task-dto/update-tas
 export class ConversationGatewayController {
   constructor(private readonly apiGatewayService: ApiGatewayService) {}
 
+  @Get('/cron-job')
+  cronJob() {
+    return 'CRON-JOB';
+  }
   @Post(`/create-channel`)
   @HttpCode(201)
   create(@Body() createChannelDto: CreateChannelDto) {

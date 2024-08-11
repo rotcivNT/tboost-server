@@ -17,13 +17,13 @@ import { UpdateChannelDto } from 'apps/api-gateway/src/dtos/conversation-dto/cha
 import { CreateDirectConversationDto } from 'apps/api-gateway/src/dtos/conversation-dto/direct-conversation-dto/create-direct-conversation';
 import { GetDirectConversationDto } from 'apps/api-gateway/src/dtos/conversation-dto/direct-conversation-dto/get-direct-conversation';
 import { ApiStatus } from 'apps/api-gateway/src/types/api-status';
-import { AcceptInvitationResponseDto } from 'apps/conversation-service/src/conversation/dto/response-dto/accept-invitation-response.dto';
-import { CreateChannelResponseDto } from 'apps/conversation-service/src/conversation/dto/response-dto/create-channel-response.dto';
-import { DeleteBookmarkReponseDto } from 'apps/conversation-service/src/conversation/dto/response-dto/delete-bookmark-reponse.dto';
-import { DeleteChannelResponseDto } from 'apps/conversation-service/src/conversation/dto/response-dto/delete-channel-response.dto';
-import { GetChannelResponseDto } from 'apps/conversation-service/src/conversation/dto/response-dto/get-channel-response.dto';
-import { SendInvitationReponseDto } from 'apps/conversation-service/src/conversation/dto/response-dto/send-invitation-reponse.dto';
-import { UpdateChannelResponseDto } from 'apps/conversation-service/src/conversation/dto/response-dto/update-channel-response.dto';
+import { AcceptInvitationResponseDto } from 'apps/conversation-service/src/dto/response-dto/accept-invitation-response.dto';
+import { CreateChannelResponseDto } from 'apps/conversation-service/src/dto/response-dto/create-channel-response.dto';
+import { DeleteBookmarkReponseDto } from 'apps/conversation-service/src/dto/response-dto/delete-bookmark-reponse.dto';
+import { DeleteChannelResponseDto } from 'apps/conversation-service/src/dto/response-dto/delete-channel-response.dto';
+import { GetChannelResponseDto } from 'apps/conversation-service/src/dto/response-dto/get-channel-response.dto';
+import { SendInvitationReponseDto } from 'apps/conversation-service/src/dto/response-dto/send-invitation-reponse.dto';
+import { UpdateChannelResponseDto } from 'apps/conversation-service/src/dto/response-dto/update-channel-response.dto';
 import { ObjectId } from 'mongoose';
 import { ChannelInvitationRepository } from './channel-invitation.repository';
 import { ChannelRepository } from './channel.repository';
@@ -48,6 +48,7 @@ import {
 import { ChannelTaskColumnRepository } from './channel-task-column.repository';
 import { CreateTaskColumnDto } from 'apps/api-gateway/src/dtos/conversation-dto/task-dto/create-task-column.dto';
 import { UpdateTaskColumnDto } from 'apps/api-gateway/src/dtos/conversation-dto/task-dto/update-task-column.dto';
+import { GetChannelTaskColumnResponse } from './dto/response-dto/get-task-column-response.dto';
 
 @Injectable()
 export class ConversationsService {
@@ -342,6 +343,7 @@ export class ConversationsService {
   ): Promise<GetChannelResponseDto> {
     const channels = await this.channelRepository.find({
       workspaceID,
+      isPublic: true,
     });
     if (channels.length === 0) {
       return {
@@ -359,6 +361,19 @@ export class ConversationsService {
     };
   }
 
+  async checkIsExistingDC(memberIds: string[]) {
+    const dc = await this.directConversationRepository.find({
+      members: {
+        $all: memberIds,
+      },
+    });
+
+    if (dc.length === 0) {
+      return false;
+    }
+    return true;
+  }
+
   async createDirectConversation(data: CreateDirectConversationDto) {
     const { members, type, workspaceId } = data;
     const allMembersInWorkspace =
@@ -366,17 +381,20 @@ export class ConversationsService {
         organizationId: workspaceId,
       });
 
-    const promises = allMembersInWorkspace.data.map((member) => {
+    const promises = allMembersInWorkspace.data.map(async (member) => {
       if (member.publicUserData.userId === members[0]) return undefined;
       const payload = {
-        members: [...members, member.id],
+        members: [...members, member.publicUserData.userId],
         type,
         workspaceId,
       };
+      const isExist = await this.checkIsExistingDC(payload.members);
+
+      if (isExist) return undefined;
+
       return this.directConversationRepository.create(payload);
     });
-    const res = await Promise.allSettled(promises);
-    console.log(res);
+    await Promise.allSettled(promises);
 
     return;
   }
@@ -466,7 +484,7 @@ export class ConversationsService {
 
   async getChannelTaskByChannelId(
     channelId: string,
-  ): Promise<GetChannelTaskResponse> {
+  ): Promise<GetChannelTaskColumnResponse> {
     const tasks = await this.channelTaskColumnRepository.findById(channelId);
     if (tasks.length === 0) {
       return {

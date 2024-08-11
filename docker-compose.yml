@@ -1,10 +1,10 @@
 services:
   api-gateway:
-    image: api-gateway
+    image: r0tc1v/api-gateway
     build:
       context: .
       dockerfile: apps/api-gateway/Dockerfile
-      target: development
+      target: production
     command: yarn start:dev api-gateway
     volumes:
       - .:/usr/src/app
@@ -15,38 +15,42 @@ services:
       - .env
 
   conversation-service:
-    image: conversation-service
+    image: r0tc1v/conversation-service
     build:
       context: .
       dockerfile: apps/conversation-service/Dockerfile
-      target: development
+      target: production
     command: yarn start:dev conversation-service
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
+    ports:
+      - 3004:3004
     env_file:
       - apps/conversation-service/.env
       - .env
 
   message-service:
-    image: message-service
+    image: r0tc1v/message-service
     build:
       context: .
       dockerfile: apps/message-service/Dockerfile
-      target: development
+      target: production
     command: yarn start:dev message-service
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
+    ports:
+      - 3005:3005
     env_file:
       - .env
 
   upload-service:
-    image: upload-service
+    image: r0tc1v/upload-service
     build:
       context: .
       dockerfile: apps/upload-service/Dockerfile
-      target: development
+      target: production
     command: yarn start:dev upload-service
     volumes:
       - .:/usr/src/app
@@ -58,14 +62,16 @@ services:
       - .env
 
   auth-service:
-    image: auth-service
+    image: r0tc1v/auth-service
     build:
       context: .
       dockerfile: apps/auth-service/Dockerfile
-      target: development
+      target: production
     command: yarn start:dev auth-service
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
+    ports:
+      - 3003:3003
     env_file:
       - .env

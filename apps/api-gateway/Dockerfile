@@ -31,4 +31,6 @@ COPY . .
 COPY --from=development /usr/src/app/dist ./dist
 COPY --from=development /usr/src/app/node_modules ./node_modules
 
+EXPOSE 3001
+
 CMD ["node", "dist/apps/api-gateway/main"]

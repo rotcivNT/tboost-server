@@ -1,6 +1,6 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateTaskDto } from './create-task.dto';
-import { TaskAttachment } from 'apps/conversation-service/src/conversation/schema/channel-task.schema';
+import { TaskAttachment } from 'apps/conversation-service/src/schema/channel-task.schema';
 import { IsNotEmpty, IsOptional } from 'class-validator';
 
 export class UpdateTaskDto extends PartialType(CreateTaskDto) {

@@ -2,9 +2,9 @@ import { AbstractRepository } from '@app/common/database/abstract.repository';
 import { Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { LIMIT_MESSAGE } from '../constants';
+import { LIMIT_MESSAGE } from './constants';
 import { MessageItem } from './schema/message.schema';
-import { ClusterReponse } from '../types';
+import { ClusterReponse } from './types';
 
 export class MessageItemRepository extends AbstractRepository<MessageItem> {
   protected readonly logger = new Logger(MessageItemRepository.name);

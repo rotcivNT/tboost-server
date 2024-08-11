@@ -1,13 +1,14 @@
 import {
   Body,
   Controller,
+  Get,
   Post,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventPattern } from '@nestjs/microservices';
-import { detectTypeOfFile } from 'apps/message-service/src/messages/helper';
+import { detectTypeOfFile } from 'apps/message-service/src/helper';
 import { encodeImageToBlurhash } from 'apps/upload-service/helper';
 import imageSize from 'image-size';
 import { ISizeCalculationResult } from 'image-size/dist/types/interface';
@@ -26,6 +27,10 @@ export class UploadController {
     private configService: ConfigService,
   ) {}
 
+  @Get('/cron-job')
+  cronJob() {
+    return 'CRON-JOB';
+  }
   @Post()
   @UseInterceptors(FilesInterceptor('files'), FormDataToJsonInterceptor)
   async uploadFiles(
@@ -39,6 +44,9 @@ export class UploadController {
         file.originalname = Buffer.from(file.originalname, 'latin1').toString(
           'utf8',
         );
+        const fileName = Buffer.from(file.originalname, 'latin1').toString(
+          'utf8',
+        );
 
         const typeOfFile = detectTypeOfFile(file.mimetype);
         const fileUrl = await this.uploadService.uploadToR2(
@@ -49,7 +57,7 @@ export class UploadController {
           type: typeOfFile,
           url: fileUrl,
           mimeType: file.mimetype,
-          name: file.originalname,
+          name: fileName,
           size: file.size,
         };
 

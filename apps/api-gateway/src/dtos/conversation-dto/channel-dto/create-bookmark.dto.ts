@@ -1,4 +1,4 @@
-import { ConversationType } from 'apps/conversation-service/src/conversation/types/conversation.type';
+import { ConversationType } from 'apps/conversation-service/src/types/conversation.type';
 import { Type } from 'class-transformer';
 import { IsIn, IsNotEmpty, IsOptional, IsUrl } from 'class-validator';
 

@@ -11,22 +11,22 @@ import {
   GetUserDto,
 } from 'apps/api-gateway/src/dtos/auth-dto/get-user.dto';
 import { CreateMeetingMessageDto } from 'apps/api-gateway/src/dtos/message-dto/create-meeting-message.dto';
-import { CreateMessageDto } from 'apps/api-gateway/src/dtos/message-dto/create-messate.dto';
+import { CreateMessageDto } from 'apps/api-gateway/src/dtos/message-dto/create-message.dto';
 import { CreateSystemMessageDto } from 'apps/api-gateway/src/dtos/message-dto/CreateSystemMessageDto';
 import { DeleteFileMessageDto } from 'apps/api-gateway/src/dtos/message-dto/delete-file-message.dto';
 import { UpdateMeetingStatusDto } from 'apps/api-gateway/src/dtos/message-dto/update-meeting-status.dto';
 import { UpdateMessageDto } from 'apps/api-gateway/src/dtos/message-dto/update-message.dto';
 import { ApiStatus } from 'apps/api-gateway/src/types/api-status';
+import { GetUserResponseDto } from 'apps/auth-service/src/dto/response-dto/get-user-response.dto';
 import { User } from 'apps/auth-service/src/schema/user.schema';
 import { lastValueFrom } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
-import { CreateMessageResponseDto } from '../dto/reponse-dto/create-message-response.dto';
-import { GetMessageReponseDto } from '../dto/reponse-dto/get-message-response.dto';
-import { MessageResponse } from '../types';
+import { CreateMessageResponseDto } from './dto/reponse-dto/create-message-response.dto';
+import { GetMessageReponseDto } from './dto/reponse-dto/get-message-response.dto';
+import { UpdateMessageReponseDto } from './dto/reponse-dto/update-message-response.dto';
+import { MessageResponse } from './types';
 import { MessageItemRepository } from './message-item.repository';
 import { MessageItem } from './schema/message.schema';
-import { GetUserResponseDto } from 'apps/auth-service/src/dto/response-dto/get-user-response.dto';
-import { UpdateMessageReponseDto } from '../dto/reponse-dto/update-message-response.dto';
 
 @Injectable()
 export class MessagesService {
@@ -230,7 +230,7 @@ export class MessagesService {
       const message = await this.messageItemRepository.create(messageProps);
       const deliveryMessage = {
         ...message,
-        // sender: createSystemMessageDto.sender,
+        sender: createSystemMessageDto.sender,
       };
       this.channelClient.emit('message-delivery', {
         channelId: createSystemMessageDto.channelId,

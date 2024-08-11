@@ -1,7 +1,7 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateDirectConversationDto } from './create-direct-conversation';
-import { BookmarkFolder } from 'apps/conversation-service/src/conversation/types/bookmark-folder.type';
-import { Bookmark } from 'apps/conversation-service/src/conversation/types/bookmark.type';
+import { BookmarkFolder } from 'apps/conversation-service/src/types/bookmark-folder.type';
+import { Bookmark } from 'apps/conversation-service/src/types/bookmark.type';
 import { IsArray, IsOptional } from 'class-validator';
 
 export class UpdateDirectConversationDto extends PartialType(

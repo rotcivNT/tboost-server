@@ -1,7 +1,7 @@
-import { BookmarkFolder } from 'apps/conversation-service/src/conversation/types/bookmark-folder.type';
-import { Bookmark } from 'apps/conversation-service/src/conversation/types/bookmark.type';
-import { ChannelSettings } from 'apps/conversation-service/src/conversation/types/channel-setting.type';
-import { ConversationMember } from 'apps/conversation-service/src/conversation/types/conversation.type';
+import { BookmarkFolder } from 'apps/conversation-service/src/types/bookmark-folder.type';
+import { Bookmark } from 'apps/conversation-service/src/types/bookmark.type';
+import { ChannelSettings } from 'apps/conversation-service/src/types/channel-setting.type';
+import { ConversationMember } from 'apps/conversation-service/src/types/conversation.type';
 import {
   ArrayMinSize,
   IsArray,
